@@ -23,16 +23,24 @@ object WeworkOperationImpl {
      * 获取文章链接
      */
     fun getLink(): Boolean {
-        LogUtils.d("getLink(): ${WeworkController.weworkService.currentClassPackage}")
-        when (WeworkController.weworkService.currentClassPackage) {
+        val currentApp = WeworkController.weworkService.currentClassPackage
+        LogUtils.d("getLink(): $currentApp")
+        val result = when (currentApp) {
             Constant.PACKAGE_NAMES_WECHAT -> {
-                return getWechatLink()
+                getWechatLink()
             }
             Constant.PACKAGE_NAMES_WEWORK -> {
-                return getWeworkLink()
+                getWeworkLink()
             }
             else -> return false
         }
+        if (Constant.autoBack == 1) {
+            Utils.getApp().packageManager.getLaunchIntentForPackage(currentApp)?.apply {
+                    this.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    Utils.getApp().startActivity(this)
+                }
+        }
+        return result
     }
 
     /**
@@ -169,8 +177,10 @@ object WeworkOperationImpl {
         AccessibilityExtraUtil.loadingPage("MainActivity", "HotSplashActivity")
         if (WeworkController.weworkService.currentClass == "com.baidu.searchbox.introduction.hotboot.HotSplashActivity") {
             AccessibilityUtil.findTextAndClick(getRoot(), "跳过")
+            LogUtils.d("尝试跳过")
             if (!AccessibilityExtraUtil.loadingPage("MainActivity", "SlidingPaneLayout", timeout = Constant.CHANGE_PAGE_INTERVAL)) {
                 AccessibilityUtil.clickByNode(WeworkController.weworkService, AccessibilityUtil.findOnceByText(getRoot(), "跳过"))
+                LogUtils.d("再次尝试跳过")
                 AccessibilityExtraUtil.loadingPage("MainActivity", "SlidingPaneLayout")
             }
         }

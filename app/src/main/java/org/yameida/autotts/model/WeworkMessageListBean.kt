@@ -37,8 +37,8 @@ class WeworkMessageListBean<T> {
     //加密消息列表
     var encryptedList: String = ""
 
-    //消息加密 0不加密 1AES
-    var encryptType = Constant.encryptType
+    //自动跳回 0不跳回 1自动跳回
+    var encryptType = Constant.autoBack
 
     constructor(weworkMessageBean: T, type: Int, messageId: String? = null) {
         if (encryptType == 0) {

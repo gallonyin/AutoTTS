@@ -19,6 +19,7 @@ import org.json.JSONObject
 import org.yameida.autotts.Constant
 import org.yameida.autotts.R
 import org.yameida.autotts.utils.*
+import java.io.File
 
 
 /**
@@ -53,22 +54,17 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun initView() {
         iv_back_left.setOnClickListener { finish() }
-        sw_encrypt.isChecked = Constant.encryptType == 1
-        sw_encrypt.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
-            LogUtils.i("sw_encrypt onCheckedChanged: $isChecked")
-            Constant.encryptType = if (isChecked) 1 else 0
-            SPUtils.getInstance().put("encryptType", Constant.encryptType)
-        })
-        sw_receive.isChecked = Constant.autoReply == 1
-        sw_receive.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
-            LogUtils.i("sw_receive onCheckedChanged: $isChecked")
-            Constant.autoReply = if (isChecked) 1 else 0
-            SPUtils.getInstance().put("autoReply", Constant.autoReply)
+        sw_auto_back.isChecked = Constant.autoBack == 1
+        sw_auto_back.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+            LogUtils.i("sw_auto_back onCheckedChanged: $isChecked")
+            Constant.autoBack = if (isChecked) 1 else 0
+            SPUtils.getInstance().put("autoBack", Constant.autoBack)
         })
         rl_reply_strategy.setOnClickListener { showReplyStrategyDialog() }
+        rl_log.setOnClickListener { showLogDialog() }
         rl_donate.setOnClickListener { showDonateDialog() }
         rl_share.setOnClickListener { showShareDialog() }
-        rl_advance.setOnClickListener { SettingsAdvanceActivity.enterActivity(this) }
+//        rl_advance.setOnClickListener { SettingsAdvanceActivity.enterActivity(this) }
         freshOpenFlow()
         bt_open_flow.setOnClickListener {
             freshOpenFlow()
@@ -114,6 +110,26 @@ class SettingsActivity : AppCompatActivity() {
             .setCheckedIndex(Constant.replyStrategy)
             .create(R.style.QMUI_Dialog)
             .show()
+    }
+
+    private fun showLogDialog() {
+        val logDir = Utils.getApp().getExternalFilesDir("log")
+        if (logDir != null && logDir.exists()) {
+            val listFiles = logDir.listFiles()
+            QMUIDialog.CheckableDialogBuilder(this)
+                .setTitle("日志文件分享")
+                .addItems(listFiles.map { it.name.replace("_" + AppUtils.getAppPackageName(), "") }.toTypedArray()) { dialog, which ->
+                    dialog.dismiss()
+                    ToastUtils.showLong(listFiles[which].name)
+                    val currentLogFilePath = listFiles[which].absolutePath
+                    FileUtils.copy(currentLogFilePath, "$currentLogFilePath.txt")
+                    ShareUtil.share("*", File("$currentLogFilePath.txt"))
+                }
+                .create(R.style.QMUI_Dialog)
+                .show()
+        } else {
+            ToastUtils.showLong("日志文件夹为空~")
+        }
     }
 
     private fun showDonateDialog() {
